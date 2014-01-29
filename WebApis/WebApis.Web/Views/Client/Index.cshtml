@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+   <meta name="viewport" content="width=device-width" />
+   <title>Google+ Creeper</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+   <style>
+      .error
+      {
+         color: red;
+      }
+   </style>
+   <script type="text/javascript">
+      // Google+ People/get doc: https://developers.google.com/+/api/latest/people/get
+      // SAC: 109737824954322437305
+
+      $(function () {
+         $('#get-data').click(function () {
+            var $gpUserid = $("#gp-userid").val();
+            var googlePlusUrl = "https://www.googleapis.com/plus/v1/people/" + $gpUserid + "?key=AIzaSyAuVL0B0AirJrTM00sG-92EhGiFWR8EWPc";
+            var $plusContainer = $("#plus-container");
+
+            // Empty the plus-container
+            $plusContainer.empty();
+
+            $.ajax({
+               url: googlePlusUrl,
+               type: 'GET',
+               error: handleGooglePlusFail,
+               success: displayGooglePlusUser
+            });
+         });
+      });
+
+      function displayGooglePlusUser(data) {
+         // Assign the jquery selectors ahead of time so we don't have to keep typing them out
+         var $plusContainer = $("#plus-container");
+         var $displayName = $("<span />");
+         var $profileImage = $("<img />");
+         var $placesLived = $("<ul />");
+         var $imageSize = $("#image-size");
+
+         // Hide all content within plus-container
+         $plusContainer.hide();
+
+         $displayName.html(data.displayName);
+         $plusContainer.append($displayName.html() + "<br /><br />");
+
+         // Get a larger size of the photo
+         var cleanImageUrl = data.image.url.split("?")[0];
+         cleanImageUrl = cleanImageUrl + "?sz=" + $imageSize.val();
+         $profileImage.attr('src', cleanImageUrl);
+         $plusContainer.append($profileImage);
+
+         // Create a list of places the user has lived
+         if (data.placesLived !== undefined) {
+            $.each(data.placesLived, function (i, place) {
+               $placesLived.append("<li>" + place.value + "</li>");
+            });
+
+            $plusContainer.append($placesLived);
+         }
+
+         // Fade in the plus container to show the content
+         $plusContainer.fadeIn();
+      }
+
+      function handleGooglePlusFail(XMLHttpRequest, textStatus, errorThrown) {
+         var $plusContainer = $("#plus-container");
+
+         // Append the error to the $plusContainer and display the underlying http status code
+         $plusContainer.append("<div class='error'>Error getting user:" + XMLHttpRequest.status + "</div>");
+
+         // Fade in the plus container to show the content
+         $plusContainer.fadeIn();
+      }
+   </script>
+</head>
+<body>
+   User id: <input id="gp-userid" type="text" value="118261881873318274435" /><br />
+   Image size (px): <input id="image-size" type="text" value="200" /><br />
+   <button id="get-data">Retrieve Google+ user</button>
+   <div id="plus-container">
+   </div>
+</body>
+</html>
